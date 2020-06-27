@@ -1,4 +1,3 @@
-
 // Import
 import { Router } from 'https://deno.land/x/oak/mod.ts';
 import { existsSync, ensureDirSync } from "https://deno.land/std/fs/mod.ts";
@@ -14,7 +13,7 @@ router.get('/api/v1/instagram/:username', async (ctx: any) => {
   // Fetch
   let fetch = await api.get('https://www.instagram.com/' + await ctx.params.username + '/?__a=1');
 
-  let images: Array<string> = [];
+  let images: Array<any> = [];
 
   // Download files
   let downloadImages = async () => {
@@ -30,9 +29,14 @@ router.get('/api/v1/instagram/:username', async (ctx: any) => {
       // Downlaod file to server
       const fileObj = await download(fetch.graphql.user.edge_owner_to_timeline_media.edges[i].node.display_url, destination);
 
-      // Add link to array
-      images.push('https://localhost:5000/api/instagram/' + ctx.params.username + '/' + [i] + '.jpg');
-      console.log(images);
+      const attributes: object = {
+        'url': <string>'https://localhost:5000/api/instagram/' + ctx.params.username + '/' + [i] + '.jpg',
+        'caption': <string>fetch.graphql.user.edge_owner_to_timeline_media.edges[i].node.edge_media_to_caption.edges[0].node.text,
+        'likes': <string>fetch.graphql.user.edge_owner_to_timeline_media.edges[i].node.edge_liked_by.count,
+        'comments': <string>fetch.graphql.user.edge_owner_to_timeline_media.edges[i].node.edge_media_to_comment.count
+      };
+
+      images.push(attributes);
 
     }
   }
